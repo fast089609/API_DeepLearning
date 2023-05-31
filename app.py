@@ -13,9 +13,8 @@ import numpy as np
 import cv2
 
 import base64
-from PIL import Image
 from io import BytesIO
-
+from PIL import Image
 
 width_shape = 224
 height_shape = 224
@@ -44,7 +43,6 @@ def model_predict(img_path, model):
     preds = model.predict(x)
     return preds
 
-
 def base64_to_image(base64_data):
     # Dividir la cadena Base64 en nombre y datos
     parts = base64_data.split(',')
@@ -53,8 +51,7 @@ def base64_to_image(base64_data):
 
     name = parts[0]
     base64_string = parts[1]
-
-    # Decodificar la cadena Base64 en bytes
+        # Decodificar la cadena Base64 en bytes
     image_bytes = base64.b64decode(base64_string)
 
     # Crear un objeto BytesIO a partir de los bytes decodificados
@@ -65,7 +62,6 @@ def base64_to_image(base64_data):
 
     return name, image
 
-
 @app.route('/', methods=['GET'])
 def index():
     # Página principal
@@ -75,27 +71,24 @@ def index():
 @app.route('/predict', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
-        # Obtiene el archivo del re
-        # quest
+        # Obtiene el archivo del request
         f = request.files['file']
-        image = base64_to_image(f)
-        
+
         # Graba el archivo en ./uploads
         basepath = os.path.dirname(__file__)
         file_path = os.path.join(
-            basepath, 'uploads', secure_filename('imagen.jpg'))
+                        basepath, 'uploads', secure_filename(f.filename))
         f.save(file_path)
 
         # Predicción
         preds = model_predict(file_path, model)
 
         print('PREDICCIÓN', names[np.argmax(preds)])
-        
+
         # Enviamos el resultado de la predicción
-        result = str(names[np.argmax(preds)])              
+        result = str(names[np.argmax(preds)])
         return result
     return None
-
 
 @app.route('/predict_app', methods=['GET', 'POST'])
 def predictapp():
@@ -104,24 +97,22 @@ def predictapp():
         f = request.form.get('imagen')
         print(f)
         name, image = base64_to_image(f)
-        
+
         # Graba el archivo en ./uploads
         basepath = os.path.dirname(__file__)
         file_path = os.path.join(
             basepath, 'uploads', secure_filename(name))
         image.save(file_path)
-
+        
         # Predicción
         preds = model_predict(file_path, model)
 
         print('PREDICCIÓN', names[np.argmax(preds)])
-        
+
         # Enviamos el resultado de la predicción
-        result = str(names[np.argmax(preds)])              
+        result = str(names[np.argmax(preds)])
         return result
     return None
 
-
 if __name__ == '__main__':
-    app.run(debug=False, threaded=False)
-
+    app.run(host="0.0.0.0",debug=False, threaded=False)
